@@ -15,8 +15,20 @@ class Book:
     def __eq__(self, value):
         return self.isbn == value.isbn
 
-b1 = Book("Dune", "Frank Herbert", "12345")
-b2 = Book("Dune", "Frank Herbert", "12346")
-b1.is_checked_out = True
-print(b1)
-print(b1==b2)
+class Member:
+    def __init__(self, name, member_id):
+        self.name = name
+        self.member_id = member_id
+        self.borrowed_books = []
+
+    def __str__(self):
+        return f"{self.name}(ID: {self.member_id})"
+
+m1=Member("Alice", "001")
+print(m1)
+
+# b1 = Book("Dune", "Frank Herbert", "12345")
+# b2 = Book("Dune", "Frank Herbert", "12346")
+# b1.is_checked_out = True
+# print(b1)
+# print(b1==b2)
