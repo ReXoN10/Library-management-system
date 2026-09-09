@@ -24,7 +24,16 @@ class Member:
     def __str__(self):
         return f"{self.name}(ID: {self.member_id})"
 
-m1=Member("Alice", "001")
+
+class BookNotAvailableError(Exception):
+    pass
+
+class BookNotFoundError(Exception):
+    pass
+
+    
+
+m1=Member("Mohit", "001")
 print(m1)
 
 # b1 = Book("Dune", "Frank Herbert", "12345")
