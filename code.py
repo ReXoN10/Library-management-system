@@ -31,13 +31,40 @@ class BookNotAvailableError(Exception):
 class BookNotFoundError(Exception):
     pass
 
-    
 
-m1=Member("Mohit", "001")
-print(m1)
+class Library:
+    def __init__(self):
+        self.books = []
+        self.members = []
 
-# b1 = Book("Dune", "Frank Herbert", "12345")
-# b2 = Book("Dune", "Frank Herbert", "12346")
-# b1.is_checked_out = True
-# print(b1)
-# print(b1==b2)
+    def add_book(self, book):
+        self.books.append(book)
+
+    def find_book(self,isbn):
+        for book in self.books:
+            if book.isbn == isbn:
+                return book
+        return None
+
+    def add_member(self, member):
+        self.members.append(member)
+
+    def find_member(self, member_id):
+        for member in self.members:
+            if member.member_id == member_id:
+                return member
+        return None
+
+lib = Library()
+lib.add_book(Book("Dune", "Frank Herbert", "12345"))
+lib.add_book(Book("1984", "George Orwell", "17832"))
+lib.add_member(Member("Mohit", "001"))
+lib.add_member(Member("Riya", "002"))
+ 
+# print(lib.find_book("12345"))              
+
+# print(lib.find_book("99999"))        
+
+print(lib.find_member("001"))
+
+print(lib.find_member("999"))
