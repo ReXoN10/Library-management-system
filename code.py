@@ -73,6 +73,34 @@ class Library:
         book.is_checked_out = True
         member.borrowed_books.append(book)
 
+    def return_book(self, isbn, member_id):
+        book=self.find_book(isbn)
+        if book is None:
+            raise BookNotFoundError(f"Book with ISBN {isbn} not found.")
+        
+        if book.is_checked_out == False:
+            raise BookNotAvailableError(f"{book.title} is not checked out.")
+
+        member=self.find_member(member_id)
+        if member is None:
+            raise MemberNotFoundError(f"Member with ID {member_id} not found.")
+
+        if book not in member.borrowed_books:
+                raise BookNotFoundError(f"Member with ID {member_id} did not borrow {book.title}.")
+
+        book.is_checked_out = False
+        member.borrowed_books.remove(book)
+
+
+def attempt(action, *args):
+    try:
+        result =action(*args)
+        return result
+    except (MemberNotFoundError, BookNotFoundError, BookNotAvailableError) as e:
+        print(e)
+        return None
+    
+
 
 
 lib = Library()
@@ -81,31 +109,13 @@ lib.add_book(Book("1984", "George Orwell", "17832"))
 lib.add_member(Member("Mohit", "001"))
 lib.add_member(Member("Riya", "002"))
 
-try:
-    lib.checkout_book("12346", "001")
-    print(lib.find_member("001").borrowed_books)
 
-except (MemberNotFoundError, BookNotFoundError, BookNotAvailableError) as e:
-    print(e)
+attempt(lib.checkout_book,"12345", "001")
+print(lib.find_member("001").borrowed_books)  
 
-try:
-    lib.checkout_book("17832", "002")
-    print(lib.find_member("002").borrowed_books)
+attempt(lib.checkout_book,"12345", "002")
+attempt(lib.checkout_book,"17832", "002")
+print(lib.find_member("002").borrowed_books)
 
-except (MemberNotFoundError, BookNotFoundError, BookNotAvailableError) as e:
-    print(e)
-
-
-try:
-    lib.checkout_book("17832", "001")  
-
-except (MemberNotFoundError, BookNotFoundError, BookNotAvailableError) as e:
-    print(e)
-
-
-try:
-    lib.checkout_book("12345", "003")
-    print(lib.find_member("003").borrowed_books)
-
-except (MemberNotFoundError, BookNotFoundError, BookNotAvailableError) as e:
-    print(e)
+attempt(lib.return_book,"12345", "001")
+print(lib.find_member("001").borrowed_books)
