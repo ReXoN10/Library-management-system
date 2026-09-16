@@ -1,9 +1,25 @@
+import json
+
 class Book:
     def __init__(self, title, author, isbn):
         self.title = title
         self.author = author
         self.isbn = isbn
         self.is_checked_out = False
+
+    def to_dict(self):
+        return {
+            "title": self.title,
+            "author": self.author,
+            "isbn": self.isbn,
+            "checked_out": self.is_checked_out
+        }
+
+    @classmethod
+    def from_dict(cls, data):
+        book = cls(data["title"], data["author"], data["isbn"])
+        book.is_checked_out = data["checked_out"]
+        return book
 
     def __str__(self):
         status = "Checked out" if self.is_checked_out else "Available"
@@ -15,15 +31,33 @@ class Book:
     def __eq__(self, value):
         return self.isbn == value.isbn
 
+
 class Member:
     def __init__(self, name, member_id):
         self.name = name
         self.member_id = member_id
         self.borrowed_books = []
 
+    def to_dict(self):
+        borrowed_dict = []
+        for book in self.borrowed_books:
+            borrowed_dict.append(book.to_dict())
+        return {
+            "name": self.name,
+            "member_id": self.member_id,
+            "borrowed_books": borrowed_dict
+        }
+
+    @classmethod
+    def from_dict(cls, data):
+        member = cls(data["name"], data["member_id"])
+        for book_dict in data["borrowed_books"]:
+            member.borrowed_books.append(Book.from_dict(book_dict))
+        return member
+
     def __str__(self):
         return f"{self.name}(ID: {self.member_id})"
-    
+
 
 class BookNotFoundError(Exception):
     pass
@@ -43,7 +77,7 @@ class Library:
     def add_book(self, book):
         self.books.append(book)
 
-    def find_book(self,isbn):
+    def find_book(self, isbn):
         for book in self.books:
             if book.isbn == isbn:
                 return book
@@ -59,14 +93,14 @@ class Library:
         return None
 
     def checkout_book(self, isbn, member_id):
-        book=self.find_book(isbn)
+        book = self.find_book(isbn)
         if book is None:
             raise BookNotFoundError(f"Book with ISBN {isbn} not found.")
 
         if book.is_checked_out:
             raise BookNotAvailableError(f"{book.title} is already checked out.")
 
-        member=self.find_member(member_id)
+        member = self.find_member(member_id)
         if member is None:
             raise MemberNotFoundError(f"Member with ID {member_id} not found.")
 
@@ -74,19 +108,19 @@ class Library:
         member.borrowed_books.append(book)
 
     def return_book(self, isbn, member_id):
-        book=self.find_book(isbn)
+        book = self.find_book(isbn)
         if book is None:
             raise BookNotFoundError(f"Book with ISBN {isbn} not found.")
-        
+
         if book.is_checked_out == False:
             raise BookNotAvailableError(f"{book.title} is not checked out.")
 
-        member=self.find_member(member_id)
+        member = self.find_member(member_id)
         if member is None:
             raise MemberNotFoundError(f"Member with ID {member_id} not found.")
 
         if book not in member.borrowed_books:
-                raise BookNotFoundError(f"Member with ID {member_id} did not borrow {book.title}.")
+            raise BookNotFoundError(f"Member with ID {member_id} did not borrow {book.title}.")
 
         book.is_checked_out = False
         member.borrowed_books.remove(book)
@@ -94,28 +128,37 @@ class Library:
 
 def attempt(action, *args):
     try:
-        result =action(*args)
+        result = action(*args)
         return result
     except (MemberNotFoundError, BookNotFoundError, BookNotAvailableError) as e:
         print(e)
         return None
-    
-
 
 
 lib = Library()
+
 lib.add_book(Book("Dune", "Frank Herbert", "12345"))
 lib.add_book(Book("1984", "George Orwell", "17832"))
+lib.add_book(Book("The Hobbit", "J.R.R. Tolkien", "98765"))
+
 lib.add_member(Member("Mohit", "001"))
 lib.add_member(Member("Riya", "002"))
 
-
-attempt(lib.checkout_book,"12345", "001")
-print(lib.find_member("001").borrowed_books)  
-
-attempt(lib.checkout_book,"12345", "002")
-attempt(lib.checkout_book,"17832", "002")
-print(lib.find_member("002").borrowed_books)
-
-attempt(lib.return_book,"12345", "001")
+attempt(lib.checkout_book, "12345", "001")
 print(lib.find_member("001").borrowed_books)
+
+b1 = lib.find_book("12345")
+b1_data = b1.to_dict()
+print(b1_data)
+
+b1_reloaded = Book.from_dict(b1_data)
+print(b1_reloaded)
+print(b1_reloaded.is_checked_out)   
+
+m1 = lib.find_member("001")
+m1_data = m1.to_dict()
+print(m1_data)
+
+m1_reloaded = Member.from_dict(m1_data)
+print(m1_reloaded.borrowed_books)          
+print(type(m1_reloaded.borrowed_books[0]))
