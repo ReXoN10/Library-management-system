@@ -125,6 +125,26 @@ class Library:
         book.is_checked_out = False
         member.borrowed_books.remove(book)
 
+    def to_dict(self):
+        books_dict=[]
+        for book in self.books:
+            books_dict.append(book.to_dict())
+
+        members_dict=[]
+        for member in self.members:
+            members_dict.append(member.to_dict())
+
+        return {"books":books_dict,
+                "members":members_dict
+        }
+
+
+    def save_to_file(self,filename):
+        data = self.to_dict()
+        with open (filename, "w") as f:
+            json.dump(data, f, indent=4)
+
+
 
 def attempt(action, *args):
     try:
@@ -144,21 +164,13 @@ lib.add_book(Book("The Hobbit", "J.R.R. Tolkien", "98765"))
 lib.add_member(Member("Mohit", "001"))
 lib.add_member(Member("Riya", "002"))
 
-attempt(lib.checkout_book, "12345", "001")
-print(lib.find_member("001").borrowed_books)
+lib.checkout_book("12345","001")
+lib.checkout_book("17832", "002")
+lib.checkout_book("98765", "002")
+lib.return_book("98765", "002")
+# print(lib.to_dict())
 
-b1 = lib.find_book("12345")
-b1_data = b1.to_dict()
-print(b1_data)
+lib.save_to_file("library.json")
 
-b1_reloaded = Book.from_dict(b1_data)
-print(b1_reloaded)
-print(b1_reloaded.is_checked_out)   
-
-m1 = lib.find_member("001")
-m1_data = m1.to_dict()
-print(m1_data)
-
-m1_reloaded = Member.from_dict(m1_data)
-print(m1_reloaded.borrowed_books)          
-print(type(m1_reloaded.borrowed_books[0]))
+with open("library.json", "r") as f:
+    print(f.read())
