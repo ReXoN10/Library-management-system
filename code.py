@@ -145,6 +145,22 @@ class Library:
             json.dump(data, f, indent=4)
 
 
+    def load_from_file(self, filename):
+        with open (filename, "r") as f:
+            data = json.load(f)
+
+        self.books=[]
+        for book in data["books"]:
+            self.books.append(Book.from_dict(book))
+
+        self.members=[]
+        for member in data["members"]:
+            new_member = Member(member["name"], member["member_id"])
+            for book_data in member["borrowed_books"]:
+                isbn=book_data["isbn"]
+                book=self.find_book(isbn)
+                new_member.borrowed_books.append(book)
+            self.members.append(new_member)
 
 def attempt(action, *args):
     try:
@@ -168,9 +184,5 @@ lib.checkout_book("12345","001")
 lib.checkout_book("17832", "002")
 lib.checkout_book("98765", "002")
 lib.return_book("98765", "002")
-# print(lib.to_dict())
 
 lib.save_to_file("library.json")
-
-with open("library.json", "r") as f:
-    print(f.read())
