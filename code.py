@@ -185,34 +185,90 @@ class LibraryLogger:
                 f.write(f"[{timestamp}] {self.action} - {details_str} SUCCESS.\n")
             else:
                 f.write(f"[{timestamp}] {self.action} - {details_str} FAILURE: {str(exc_value)}.\n")
+                print(f"Error: {exc_value}")
 
         return True
 
 
         
 
-def attempt(action, *args):
-    try:
-        result = action(*args)
-        return result
-    except (MemberNotFoundError, BookNotFoundError, BookNotAvailableError) as e:
-        print(e)
-        return None
-
 def log_action(action,filename, action_name, *args, **kwargs):
     with LibraryLogger(filename, action_name, **kwargs ) as log:
         return action(*args)
-       
 
 
-lib = Library()
+def print_menu():
+    print("\n===== Library Menu =====")
+    print("1. Add book")
+    print("2. Add member")
+    print("3. Checkout book")
+    print("4. Return book")
+    print("5. List all books")
+    print("6. List all members")
+    print("7. Save library")
+    print("8. Load library")
+    print("9. Exit")
 
-lib.add_book(Book("Dune", "Frank Herbert", "12345"))
-lib.add_book(Book("1984", "George Orwell", "17832"))
-lib.add_book(Book("The Hobbit", "J.R.R. Tolkien", "98765"))
 
-lib.add_member(Member("Mohit", "001"))
-lib.add_member(Member("Riya", "002"))
+def run_cli():
+    lib = Library()
+
+    while True:
+        print_menu()
+        choice = input("Enter choice: ").strip()
+
+        if choice == "1":
+            title = input("Title: ").strip()
+            author = input("Author: ").strip()
+            isbn = input("ISBN: ").strip()
+            lib.add_book(Book(title, author, isbn))
+            print(f"Added '{title}'.")
+
+        elif choice == "2":
+            name = input("Member name: ").strip()
+            member_id = input("Member ID: ").strip()
+            lib.add_member(Member(name, member_id))
+            print(f"Added member '{name}'.")
+
+        elif choice == "3":
+            isbn = input("ISBN to checkout: ").strip()
+            member_id = input("Member ID: ").strip()
+            log_action(lib.checkout_book, "library.log", "Checkout", isbn, member_id, isbn=isbn, member_id=member_id)
+
+        elif choice == "4":
+            isbn = input("ISBN to return: ").strip()
+            member_id = input("Member ID: ").strip()
+            log_action(lib.return_book, "library.log", "Return", isbn, member_id, isbn=isbn, member_id=member_id)
+
+        elif choice == "5":
+            if not lib.books:
+                print("No books yet.")
+            for book in lib.books:
+                print(book)
+
+        elif choice == "6":
+            if not lib.members:
+                print("No members yet.")
+            for member in lib.members:
+                print(member, [str(b) for b in member.borrowed_books])
+
+        elif choice == "7":
+            filename = input("Save as filename (e.g. library.json): ").strip()
+            lib.save_to_file(filename)
+            print(f"Saved to {filename}.")
+
+        elif choice == "8":
+            filename = input("Load from filename: ").strip()
+            lib.load_from_file(filename)
+            print(f"Loaded from {filename}.")
+
+        elif choice == "9":
+            print("Goodbye.")
+            break
+
+        else:
+            print("Invalid choice, try again.")
 
 
-log_action(lib.checkout_book, "library.log", "Checkout", "12345", "001", isbn="12345", member_id="001")  
+if __name__ == "__main__":
+    run_cli()
