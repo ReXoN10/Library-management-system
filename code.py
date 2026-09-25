@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 class Book:
     def __init__(self, title, author, isbn):
@@ -162,6 +163,34 @@ class Library:
                 new_member.borrowed_books.append(book)
             self.members.append(new_member)
 
+
+class LibraryLogger:
+    def __init__(self, filename, action, **details):
+        self.filename=filename
+        self.action=action
+        self.details=details
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, tb):
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        details_str=""
+        for key,value in self.details.items():
+            details_str += f"{key} = {value}, "
+
+        with open(self.filename, "a") as f:
+            if exc_type is None:
+                f.write(f"[{timestamp}] {self.action} - {details_str} SUCCESS.\n")
+            else:
+                f.write(f"[{timestamp}] {self.action} - {details_str} FAILURE: {str(exc_value)}.\n")
+
+        return True
+
+
+        
+
 def attempt(action, *args):
     try:
         result = action(*args)
@@ -169,6 +198,11 @@ def attempt(action, *args):
     except (MemberNotFoundError, BookNotFoundError, BookNotAvailableError) as e:
         print(e)
         return None
+
+def log_action(action,filename, action_name, *args, **kwargs):
+    with LibraryLogger(filename, action_name, **kwargs ) as log:
+        return action(*args)
+       
 
 
 lib = Library()
@@ -180,9 +214,5 @@ lib.add_book(Book("The Hobbit", "J.R.R. Tolkien", "98765"))
 lib.add_member(Member("Mohit", "001"))
 lib.add_member(Member("Riya", "002"))
 
-lib.checkout_book("12345","001")
-lib.checkout_book("17832", "002")
-lib.checkout_book("98765", "002")
-lib.return_book("98765", "002")
 
-lib.save_to_file("library.json")
+log_action(lib.checkout_book, "library.log", "Checkout", "12345", "001", isbn="12345", member_id="001")  
