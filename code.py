@@ -210,6 +210,9 @@ def print_menu():
     print("9. Exit")
 
 
+LIBRARY_FILE = "library.json"
+
+
 def run_cli():
     lib = Library()
 
@@ -253,14 +256,12 @@ def run_cli():
                 print(member, [str(b) for b in member.borrowed_books])
 
         elif choice == "7":
-            filename = input("Save as filename (e.g. library.json): ").strip()
-            lib.save_to_file(filename)
-            print(f"Saved to {filename}.")
+            lib.save_to_file(LIBRARY_FILE)
+            print(f"Saved to {LIBRARY_FILE}.")
 
         elif choice == "8":
-            filename = input("Load from filename: ").strip()
-            lib.load_from_file(filename)
-            print(f"Loaded from {filename}.")
+            lib.load_from_file(LIBRARY_FILE)
+            print(f"Loaded from {LIBRARY_FILE}.")
 
         elif choice == "9":
             print("Goodbye.")
